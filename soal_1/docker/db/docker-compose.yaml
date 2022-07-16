@@ -1,0 +1,44 @@
+version: '3'
+services:
+  source_db:
+    env_file:
+      - ./pg-source.env
+    container_name: 'postgres_source'
+    restart: always
+    image: postgres:13-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-source:/var/lib/postgresql/data
+      - ./initdb/init-source-data.sh:/docker-entrypoint-initdb.d/init-source-data.sh
+      - ./initdb/soal-1.sql:/docker-entrypoint-initdb.d/soal-1.sql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.0001'
+          memory: 500M
+  dwh:
+    env_file:
+      - ./redshift-dwh.env
+    container_name: 'redshift_dwh'
+    restart: always
+    image: postgres:13-alpine
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-dwh:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.0001'
+          memory: 500M
+
+volumes:
+  postgres-source:
+  postgres-dwh:
