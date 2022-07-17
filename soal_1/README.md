@@ -11,7 +11,13 @@
 [dbdiagram link](https://dbdiagram.io/d/62d39949cc1bc14cc5d1563c)
 
 ### Explanation
-Because 
+Based on current data model for this datawarehouse (order fact table), a suggestion for alternative DWH schema by adding new columns in `fact_order_accumulating`:
+- `number_of_products_ids` [int]
+    - Reason: Need a metric to measure how many SKUs are ordered for each order number
+- `is_invoice_exists` [boolean]
+    - Reason: To mark order number that still doesn't have invoice number
+- `is_payment_success` [boolean]
+    - Reason: To mark order number that still doesn't have payment number (indicate payment status)
 
 ## Results
 ### DAG graph: `dwh_pipeline`
@@ -26,4 +32,3 @@ Because
 ![img](https://raw.github.com/alionar/ef-de-test/master/soal_1/docs/imgs/dwh_table_dim_customer.png?raw=true)
 #### `fact_order_accumulating`
 ![img](https://raw.github.com/alionar/ef-de-test/master/soal_1/docs/imgs/dwh_table_fact_order_accumulating.png?raw=true)
-
