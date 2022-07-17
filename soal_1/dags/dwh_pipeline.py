@@ -449,7 +449,7 @@ check_dwh_table_fact_oa = BranchSQLOperator(
                 tablename  = 'fact_order_accumulating'
         )
     """,
-    follow_task_ids_if_true=['finished_check_dwh_table_fact_oa'],
+    follow_task_ids_if_true=['end_dwh_tf_table'],
     follow_task_ids_if_false=['create_dwh_table_fact_oa']
 )
 
@@ -460,8 +460,8 @@ create_dwh_table_fact_oa = PostgresOperator(
     sql='sql/create_dwh_fact_oa.sql'
 )
 
-finished_check_dwh_table_fact_oa = DummyOperator(
-    task_id='finished_check_dwh_table_fact_oa',
+finished_check_dwh_table_dim = DummyOperator(
+    task_id='finished_check_dwh_table_dim',
     trigger_rule='none_failed',
     dag=dag
 )
@@ -480,7 +480,7 @@ check_dwh_table_dim_date = BranchSQLOperator(
                 tablename  = 'dim_date'
         )
     """,
-    follow_task_ids_if_true=['end_dwh_tf_tables'],
+    follow_task_ids_if_true=['finished_check_dwh_table_dim'],
     follow_task_ids_if_false=['create_dwh_table_dim_date']
 )
 
@@ -505,7 +505,7 @@ check_dwh_table_dim_customer = BranchSQLOperator(
                 tablename  = 'dim_customer'
         )
     """,
-    follow_task_ids_if_true=['end_dwh_tf_tables'],
+    follow_task_ids_if_true=['finished_check_dwh_table_dim'],
     follow_task_ids_if_false=['create_dwh_table_dim_customer']
 )
 
@@ -534,7 +534,7 @@ load_dwh_tf_dim_date = GenericTransfer(
     destination_conn_id=dwh,
     destination_table='dwh.dim_date',
     preoperator=[
-        "TRUNCATE dwh.dim_date"
+        "TRUNCATE dwh.dim_date CASCADE"
     ],
     sql=f"""
         {s.q_dim_date()}
@@ -549,7 +549,7 @@ load_dwh_tf_fact_oa = GenericTransfer(
     destination_conn_id=dwh,
     destination_table='dwh.fact_order_accumulating',
     preoperator=[
-        "TRUNCATE dwh.fact_order_accumulating"
+        "TRUNCATE dwh.fact_order_accumulating CASCADE"
     ],
     sql=f"""
         {s.q_fact_oa()}
@@ -563,7 +563,7 @@ load_dwh_tf_dim_customer = GenericTransfer(
     destination_conn_id=dwh,
     destination_table='dwh.dim_customer',
     preoperator=[
-        "TRUNCATE dwh.dim_customer"
+        "TRUNCATE dwh.dim_customer CASCADE"
     ],
     sql=f"""
         {s.q_dim_customer()}
@@ -679,19 +679,20 @@ check_dwh_schema_dwh >> Label('dwh schema: not exist') >> create_dwh_schema_dwh 
 check_dwh_schema_dwh >> Label('dwh schema: exist') >> end_dwh_schema_dwh
 
 end_dwh_schema_dwh >> start_dwh_tf_tables
-start_dwh_tf_tables >> check_dwh_table_fact_oa
-check_dwh_table_fact_oa >> Label('dwh.fact_oa table: not exist') >> create_dwh_table_fact_oa >> finished_check_dwh_table_fact_oa
-check_dwh_table_fact_oa >> Label('dwh.fact_oa table: exist') >> finished_check_dwh_table_fact_oa
+start_dwh_tf_tables >> [check_dwh_table_dim_customer, check_dwh_table_dim_date]
+check_dwh_table_dim_customer >> Label('dwh.dim_customer table: not exist') >> create_dwh_table_dim_customer >> finished_check_dwh_table_dim
+check_dwh_table_dim_customer >> Label('dwh.dim_customer table: exist') >> finished_check_dwh_table_dim
+check_dwh_table_dim_date >> Label('dwh.dim_date table: not exist') >> create_dwh_table_dim_date >> finished_check_dwh_table_dim
+check_dwh_table_dim_date >> Label('dwh.dim_date table: exist') >> finished_check_dwh_table_dim
 
-finished_check_dwh_table_fact_oa >> check_dwh_table_dim_date >> Label('dwh.dim_date table: not exist') >> create_dwh_table_dim_date >> end_dwh_tf_tables
-finished_check_dwh_table_fact_oa >> check_dwh_table_dim_customer >> Label('dwh.dim_customer table: not exist') >> create_dwh_table_dim_customer >> end_dwh_tf_tables
-finished_check_dwh_table_fact_oa >> check_dwh_table_dim_date >> Label('dwh.dim_date table: exist') >> end_dwh_tf_tables
-finished_check_dwh_table_fact_oa >> check_dwh_table_dim_customer >> Label('dwh.dim_customer table: exist') >> end_dwh_tf_tables
+[check_dwh_table_dim_customer, check_dwh_table_dim_date] >> finished_check_dwh_table_dim
+finished_check_dwh_table_dim >> check_dwh_table_fact_oa >> Label('dwh.fact_oa table: not exist') >> create_dwh_table_fact_oa >> end_dwh_tf_tables
+finished_check_dwh_table_dim >> check_dwh_table_fact_oa >> Label('dwh.fact_oa table: exist') >> end_dwh_tf_tables
 
 end_dwh_tf_tables >> start_dwh_tf
-start_dwh_tf >> load_dwh_tf_dim_date
-load_dwh_tf_dim_date >> [load_dwh_tf_fact_oa, load_dwh_tf_dim_customer]
-[load_dwh_tf_fact_oa, load_dwh_tf_dim_customer]>> end_dwh_tf
+start_dwh_tf >> [load_dwh_tf_dim_date, load_dwh_tf_dim_customer]
+[load_dwh_tf_dim_date, load_dwh_tf_dim_customer] >> load_dwh_tf_fact_oa
+load_dwh_tf_fact_oa >> end_dwh_tf
 
 end_dwh_tf >> start_dwh_tf_check
 start_dwh_tf_check >> [
