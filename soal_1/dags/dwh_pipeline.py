@@ -5,7 +5,6 @@ from airflow.operators.generic_transfer import GenericTransfer
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.sql import SQLCheckOperator, BranchSQLOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-#from airflow.utils.task_group import TaskGroup
 from airflow.utils.edgemodifier import Label
 from helper import soal_1 as s
 
@@ -28,18 +27,6 @@ dag = DAG(
 db_source = s.db_airflow_conn_id('source')
 dwh = s.db_airflow_conn_id('dwh')
 
-# Task Groups
-# g_dwh_raw_schema = TaskGroup(group_id='raw_schema')
-# g_dwh_raw_tables = TaskGroup(group_id='raw_tables')
-# g_dwh_raw_load = TaskGroup(group_id='raw_load')
-# g_dwh_raw_load_check = TaskGroup(group_id='raw_load_check')
-
-# g_dwh_schema = TaskGroup(group_id='dwh_schema')
-# g_dwh_tf_tables = TaskGroup(group_id='dwh_transform_tables')
-# g_dwh_tf = TaskGroup(group_id='dwh_transform')
-# g_dwh_tf_check = TaskGroup(group_id='dwh_transform_check')
-
-
 # Tasks
 task_start = DummyOperator(
     task_id='task_start',
@@ -54,7 +41,6 @@ start_dwh_schema_raw = DummyOperator(
 check_dwh_schema_raw = BranchSQLOperator(
     task_id='check_dwh_schema_raw',
     dag=dag,
-    #task_group=g_dwh_raw_schema,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -72,7 +58,6 @@ check_dwh_schema_raw = BranchSQLOperator(
 create_dwh_schema_raw = PostgresOperator(
     task_id='create_dwh_schema_raw',
     dag=dag,
-    #task_group=g_dwh_raw_schema,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_schema_raw.sql'
 )
@@ -91,7 +76,6 @@ start_check_raw_tables = DummyOperator(
 check_raw_table_customers = BranchSQLOperator(
     task_id='check_raw_table_customers',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -110,7 +94,6 @@ check_raw_table_customers = BranchSQLOperator(
 create_raw_table_customers = PostgresOperator(
     task_id='create_raw_table_customers',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_customers.sql'
 )
@@ -118,7 +101,6 @@ create_raw_table_customers = PostgresOperator(
 check_raw_table_orders = BranchSQLOperator(
     task_id='check_raw_table_orders',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -137,7 +119,6 @@ check_raw_table_orders = BranchSQLOperator(
 create_raw_table_orders = PostgresOperator(
     task_id='create_raw_table_orders',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_orders.sql'
 )
@@ -145,7 +126,6 @@ create_raw_table_orders = PostgresOperator(
 check_raw_table_invoices = BranchSQLOperator(
     task_id='check_raw_table_invoices',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -164,7 +144,6 @@ check_raw_table_invoices = BranchSQLOperator(
 create_raw_table_invoices = PostgresOperator(
     task_id='create_raw_table_invoices',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_invoices.sql'
 )
@@ -172,7 +151,6 @@ create_raw_table_invoices = PostgresOperator(
 check_raw_table_order_lines = BranchSQLOperator(
     task_id='check_raw_table_order_lines',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -191,7 +169,6 @@ check_raw_table_order_lines = BranchSQLOperator(
 create_raw_table_order_lines = PostgresOperator(
     task_id='create_raw_table_order_lines',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_order_lines.sql'
 )
@@ -199,7 +176,6 @@ create_raw_table_order_lines = PostgresOperator(
 check_raw_table_payments = BranchSQLOperator(
     task_id='check_raw_table_payments',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -218,7 +194,6 @@ check_raw_table_payments = BranchSQLOperator(
 create_raw_table_payments = PostgresOperator(
     task_id='create_raw_table_payments',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_payments.sql'
 )
@@ -226,7 +201,6 @@ create_raw_table_payments = PostgresOperator(
 check_raw_table_products = BranchSQLOperator(
     task_id='check_raw_table_products',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -245,7 +219,6 @@ check_raw_table_products = BranchSQLOperator(
 create_raw_table_products = PostgresOperator(
     task_id='create_raw_table_products',
     dag=dag,
-    #task_group=g_dwh_raw_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_raw_products.sql'
 )
@@ -264,7 +237,6 @@ start_load_raw_tables = DummyOperator(
 load_raw_customers = GenericTransfer(
     task_id='load_raw_customers',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.customers',
@@ -281,7 +253,6 @@ load_raw_customers = GenericTransfer(
 load_raw_orders = GenericTransfer(
     task_id='load_raw_orders',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.orders',
@@ -298,7 +269,6 @@ load_raw_orders = GenericTransfer(
 load_raw_invoices = GenericTransfer(
     task_id='load_raw_invoices',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.invoices',
@@ -315,7 +285,6 @@ load_raw_invoices = GenericTransfer(
 load_raw_order_lines = GenericTransfer(
     task_id='load_raw_order_lines',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.order_lines',
@@ -332,7 +301,6 @@ load_raw_order_lines = GenericTransfer(
 load_raw_payments = GenericTransfer(
     task_id='load_raw_payments',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.payments',
@@ -349,7 +317,6 @@ load_raw_payments = GenericTransfer(
 load_raw_products = GenericTransfer(
     task_id='load_raw_products',
     dag=dag,
-    #task_group=g_dwh_raw_load,
     source_conn_id=db_source,
     destination_conn_id=dwh,
     destination_table='raw.products',
@@ -377,7 +344,6 @@ start_raw_load_check = DummyOperator(
 load_check_customers = SQLCheckOperator(
     task_id='load_check_customers',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.customers"""
@@ -386,7 +352,6 @@ load_check_customers = SQLCheckOperator(
 load_check_orders = SQLCheckOperator(
     task_id='load_check_orders',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.orders"""
@@ -395,7 +360,6 @@ load_check_orders = SQLCheckOperator(
 load_check_invoices = SQLCheckOperator(
     task_id='load_check_invoices',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.invoices"""
@@ -404,7 +368,6 @@ load_check_invoices = SQLCheckOperator(
 load_check_order_lines = SQLCheckOperator(
     task_id='load_check_order_lines',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.order_lines"""
@@ -413,7 +376,6 @@ load_check_order_lines = SQLCheckOperator(
 load_check_payments = SQLCheckOperator(
     task_id='load_check_payments',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.payments"""
@@ -422,7 +384,6 @@ load_check_payments = SQLCheckOperator(
 load_check_products = SQLCheckOperator(
     task_id='load_check_products',
     dag=dag,
-    #task_group=g_dwh_raw_load_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM raw.products"""
@@ -442,7 +403,6 @@ start_dwh_schema_dwh = DummyOperator(
 check_dwh_schema_dwh = BranchSQLOperator(
     task_id='check_dwh_schema_dwh',
     dag=dag,
-    #task_group=g_dwh_schema,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -460,7 +420,6 @@ check_dwh_schema_dwh = BranchSQLOperator(
 create_dwh_schema_dwh = PostgresOperator(
     task_id='create_dwh_schema_dwh',
     dag=dag,
-    #task_group=g_dwh_schema,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_schema_dwh.sql'
 )
@@ -479,7 +438,6 @@ start_dwh_tf_tables = DummyOperator(
 check_dwh_table_fact_oa = BranchSQLOperator(
     task_id='check_dwh_table_fact_oa',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -498,7 +456,6 @@ check_dwh_table_fact_oa = BranchSQLOperator(
 create_dwh_table_fact_oa = PostgresOperator(
     task_id='create_dwh_table_fact_oa',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_fact_oa.sql'
 )
@@ -512,7 +469,6 @@ finished_check_dwh_table_fact_oa = DummyOperator(
 check_dwh_table_dim_date = BranchSQLOperator(
     task_id='check_dwh_table_dim_date',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -531,7 +487,6 @@ check_dwh_table_dim_date = BranchSQLOperator(
 create_dwh_table_dim_date = PostgresOperator(
     task_id='create_dwh_table_dim_date',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_dim_date.sql'
 )
@@ -539,7 +494,6 @@ create_dwh_table_dim_date = PostgresOperator(
 check_dwh_table_dim_customer = BranchSQLOperator(
     task_id='check_dwh_table_dim_customer',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     conn_id=dwh,
     database='dwh',
     sql="""
@@ -558,7 +512,6 @@ check_dwh_table_dim_customer = BranchSQLOperator(
 create_dwh_table_dim_customer = PostgresOperator(
     task_id='create_dwh_table_dim_customer',
     dag=dag,
-    #task_group=g_dwh_tf_tables,
     postgres_conn_id=dwh,
     sql='sql/create_dwh_dim_customer.sql'
 )
@@ -577,7 +530,6 @@ start_dwh_tf = DummyOperator(
 load_dwh_tf_dim_date = GenericTransfer(
     task_id='load_dwh_tf_dim_date',
     dag=dag,
-    #task_group=g_dwh_tf,
     source_conn_id=dwh,
     destination_conn_id=dwh,
     destination_table='dwh.dim_date',
@@ -593,7 +545,6 @@ load_dwh_tf_dim_date = GenericTransfer(
 load_dwh_tf_fact_oa = GenericTransfer(
     task_id='load_dwh_tf_fact_oa',
     dag=dag,
-    #task_group=g_dwh_tf,
     source_conn_id=dwh,
     destination_conn_id=dwh,
     destination_table='dwh.fact_order_accumulating',
@@ -608,7 +559,6 @@ load_dwh_tf_fact_oa = GenericTransfer(
 load_dwh_tf_dim_customer = GenericTransfer(
     task_id='load_dwh_tf_dim_customer',
     dag=dag,
-    #task_group=g_dwh_tf,
     source_conn_id=dwh,
     destination_conn_id=dwh,
     destination_table='dwh.dim_customer',
@@ -634,7 +584,6 @@ start_dwh_tf_check = DummyOperator(
 load_check_fact_oa = SQLCheckOperator(
     task_id='load_check_fact_oa',
     dag=dag,
-    #task_group=g_dwh_tf_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM dwh.fact_order_accumulating"""
@@ -643,7 +592,6 @@ load_check_fact_oa = SQLCheckOperator(
 load_check_dim_date = SQLCheckOperator(
     task_id='load_check_dim_date',
     dag=dag,
-    #task_group=g_dwh_tf_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM dwh.dim_date"""
@@ -652,7 +600,6 @@ load_check_dim_date = SQLCheckOperator(
 load_check_dim_customer = SQLCheckOperator(
     task_id='load_check_dim_customer',
     dag=dag,
-    #task_group=g_dwh_tf_check,
     conn_id=dwh,
     database='dwh',
     sql="""SELECT count(1) FROM dwh.dim_customer"""
@@ -736,11 +683,8 @@ start_dwh_tf_tables >> check_dwh_table_fact_oa
 check_dwh_table_fact_oa >> Label('dwh.fact_oa table: not exist') >> create_dwh_table_fact_oa >> finished_check_dwh_table_fact_oa
 check_dwh_table_fact_oa >> Label('dwh.fact_oa table: exist') >> finished_check_dwh_table_fact_oa
 
-#[create_dwh_table_fact_oa, check_dwh_table_fact_oa] >> 
 finished_check_dwh_table_fact_oa >> check_dwh_table_dim_date >> Label('dwh.dim_date table: not exist') >> create_dwh_table_dim_date >> end_dwh_tf_tables
-#[create_dwh_table_fact_oa, check_dwh_table_fact_oa] >>
 finished_check_dwh_table_fact_oa >> check_dwh_table_dim_customer >> Label('dwh.dim_customer table: not exist') >> create_dwh_table_dim_customer >> end_dwh_tf_tables
-#[create_dwh_table_fact_oa, check_dwh_table_fact_oa] >>
 finished_check_dwh_table_fact_oa >> check_dwh_table_dim_date >> Label('dwh.dim_date table: exist') >> end_dwh_tf_tables
 finished_check_dwh_table_fact_oa >> check_dwh_table_dim_customer >> Label('dwh.dim_customer table: exist') >> end_dwh_tf_tables
 
